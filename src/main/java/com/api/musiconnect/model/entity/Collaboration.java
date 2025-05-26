@@ -1,0 +1,48 @@
+package com.api.musiconnect.model.entity;
+import com.api.musiconnect.model.enums.CollaborationStatus;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.*;
+import java.time.LocalDate;
+
+
+
+
+@Entity
+@Table(name = "collaborations")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class Collaboration {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long colaboracionId;
+
+    @NotBlank
+    @Size(min = 4, max = 50)
+    private String titulo;
+
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private User usuario;
+
+    @ManyToOne
+    @JoinColumn(name = "banda_id", nullable = false)
+    private Band banda;
+
+    private String descripcion;
+
+    @NotNull
+    private LocalDate fechaInicio;
+
+    @NotNull
+    private LocalDate fechaFin;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private CollaborationStatus estado;
+}
