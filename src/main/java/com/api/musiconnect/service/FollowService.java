@@ -65,7 +65,6 @@ public class FollowService {
             return FollowMapper.toResponse(followRepository.save(follow));
         }
 
-        // No se requiere validar si la banda está activa, ya que todas las bandas existentes lo están
         if (followRepository.existsByFollowerUserIdAndFollowedBandBandId(request.followerId(), request.followedBandId())) {
             throw new BusinessRuleException("Ya sigues a este perfil.");
         }
@@ -81,8 +80,6 @@ public class FollowService {
 
         return FollowMapper.toResponse(followRepository.save(follow));
     }
-
-
 
     @Transactional
     public List<FollowedProfileResponse> listarPerfilesSeguidos(Long userId) {
