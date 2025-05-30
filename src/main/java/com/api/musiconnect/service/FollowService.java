@@ -35,7 +35,7 @@ public class FollowService {
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario que realiza el seguimiento no encontrado."));
 
         if ((request.followedUserId() == null && request.followedBandId() == null) ||
-            (request.followedUserId() != null && request.followedBandId() != null)) {
+                (request.followedUserId() != null && request.followedBandId() != null)) {
             throw new BusinessRuleException("Debe seguir a un usuario o a una banda, pero no ambos.");
         }
 
@@ -51,6 +51,11 @@ public class FollowService {
             User seguido = userRepository.findById(request.followedUserId())
                     .orElseThrow(() -> new ResourceNotFoundException("Usuario a seguir no encontrado."));
 
+            // ✅ Validación de perfil activo (solo para usuarios)
+            if (!seguido.getDisponibilidad()) {
+                throw new BusinessRuleException("Este perfil no está disponible para seguimiento.");
+            }
+
             Follow follow = Follow.builder()
                     .follower(follower)
                     .followedUser(seguido)
@@ -60,6 +65,7 @@ public class FollowService {
             return FollowMapper.toResponse(followRepository.save(follow));
         }
 
+        // No se requiere validar si la banda está activa, ya que todas las bandas existentes lo están
         if (followRepository.existsByFollowerUserIdAndFollowedBandBandId(request.followerId(), request.followedBandId())) {
             throw new BusinessRuleException("Ya sigues a este perfil.");
         }
@@ -75,6 +81,8 @@ public class FollowService {
 
         return FollowMapper.toResponse(followRepository.save(follow));
     }
+
+
 
     @Transactional
     public List<FollowedProfileResponse> listarPerfilesSeguidos(Long userId) {
