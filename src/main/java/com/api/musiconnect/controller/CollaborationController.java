@@ -40,4 +40,26 @@ public class CollaborationController {
         List<CollaborationResponse> activas = collaborationService.listarColaboracionesActivas();
         return ResponseEntity.ok(activas);
     }
+
+    @GetMapping
+    public ResponseEntity<List<CollaborationResponse>> getAll() {
+        return ResponseEntity.ok(collaborationService.getAllCollaborations());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CollaborationResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(collaborationService.getById(id));
+    }
+
+    @PatchMapping("/{id}/add-member/{userId}")
+    public ResponseEntity<Map<String, String>> addColaborador(
+            @PathVariable Long id,
+            @PathVariable Long userId) {
+        return ResponseEntity.ok(collaborationService.addColaborador(id, userId));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> deleteColaboration(@PathVariable Long id) {
+        return ResponseEntity.ok(collaborationService.deleteCollaboration(id));
+    }
 }

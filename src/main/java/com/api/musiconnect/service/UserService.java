@@ -36,6 +36,8 @@ public class UserService {
             throw new BusinessRuleException("Ya existe un perfil registrado con este correo.");
         }
 
+
+        
         Role role = roleRepository.findById(request.roleId())
                 .orElseThrow(() -> new BusinessRuleException("Rol no encontrado."));
 
@@ -44,21 +46,29 @@ public class UserService {
             throw new BusinessRuleException("Solo se permiten roles MÚSICO o PRODUCTOR para el registro.");
         }
 
+    List<MusicGenre> generos = List.of(); // Lista vacía por defecto
+
+    if (request.generosMusicales() != null && !request.generosMusicales().isEmpty()) {
         List<MusicGenreEnum> generosEnum;
         try {
             generosEnum = request.generosMusicales().stream()
-                    .map(nombre -> MusicGenreEnum.valueOf(nombre.toUpperCase()))
-                    .toList();
+                .map(nombre -> MusicGenreEnum.valueOf(nombre.toUpperCase()))
+                .toList();
         } catch (IllegalArgumentException e) {
             throw new BusinessRuleException("Género musical inválido.");
         }
 
-        List<MusicGenre> generos = musicGenreRepository.findAllByNombreIn(generosEnum);
+        generos = musicGenreRepository.findAllByNombreIn(generosEnum);
         if (generos.size() != generosEnum.size()) {
             throw new BusinessRuleException("Género musical inválido.");
         }
+    }
+
 
         var user = UserMapper.toEntity(request, role, generos);
+        if (user.getDisponibilidad() == null) {
+            user.setDisponibilidad(true ); // Por defecto disponible
+        }
         var savedUser = userRepository.save(user);
 
         return UserMapper.toResponse(savedUser);
@@ -69,32 +79,52 @@ public class UserService {
         User usuario = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Perfil no encontrado."));
 
-        // Validar si el email ya está en uso por otro usuario
-        if (userRepository.existsByEmailAndUserIdNot(request.email(), userId)) {
-            throw new BusinessRuleException("Ya existe un perfil registrado con este correo.");
+        // Validar y actualizar email
+        if (request.email() != null && !request.email().isBlank()) {
+            if (userRepository.existsByEmailAndUserIdNot(request.email(), userId)) {
+                throw new BusinessRuleException("Ya existe un perfil registrado con este correo.");
+            }
+            usuario.setEmail(request.email());
         }
 
-        // Validar y obtener géneros musicales
-        List<MusicGenreEnum> generosEnum;
-        try {
-            generosEnum = request.generos().stream()
-                    .map(g -> MusicGenreEnum.valueOf(g.toUpperCase()))
-                    .toList();
-        } catch (IllegalArgumentException e) {
-            throw new BusinessRuleException("Género musical inválido.");
+        // Validar y actualizar bio
+        if (request.bio() != null && !request.bio().isBlank()) {
+            usuario.setBio(request.bio());
         }
 
-        List<MusicGenre> generos = musicGenreRepository.findAllByNombreIn(generosEnum);
-        if (generos.size() != generosEnum.size()) {
-            throw new BusinessRuleException("Género musical inválido.");
+        // Validar y actualizar ubicación
+        if (request.ubicacion() != null && !request.ubicacion().isBlank()) {
+            usuario.setUbicacion(request.ubicacion());
         }
 
-        // Actualizar campos
-        usuario.setEmail(request.email());
-        usuario.setBio(request.bio());
-        usuario.setInstrumentos(request.instrumentos());
-        usuario.setDisponibilidad(request.disponibilidad());
-        usuario.setGenerosMusicales(generos);
+        // Validar y actualizar instrumentos
+        if (request.instrumentos() != null && !request.instrumentos().isBlank()) {
+            usuario.setInstrumentos(request.instrumentos());
+        }
+
+        // Validar y actualizar disponibilidad
+        if (request.disponibilidad() != null) {
+            usuario.setDisponibilidad(request.disponibilidad());
+        }
+
+        // Validar y actualizar géneros musicales
+        if (request.generos() != null && !request.generos().isEmpty()) {
+            List<MusicGenreEnum> generosEnum;
+            try {
+                generosEnum = request.generos().stream()
+                        .map(g -> MusicGenreEnum.valueOf(g.toUpperCase()))
+                        .toList();
+            } catch (IllegalArgumentException e) {
+                throw new BusinessRuleException("Género musical inválido.");
+            }
+
+            List<MusicGenre> generos = musicGenreRepository.findAllByNombreIn(generosEnum);
+            if (generos.size() != generosEnum.size()) {
+                throw new BusinessRuleException("Género musical inválido.");
+            }
+
+            usuario.setGenerosMusicales(generos);
+        }
 
         userRepository.save(usuario);
 

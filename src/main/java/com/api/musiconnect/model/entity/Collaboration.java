@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 
 
@@ -30,10 +32,6 @@ public class Collaboration {
     @JoinColumn(name = "usuario_id", nullable = false)
     private User usuario;
 
-    @ManyToOne
-    @JoinColumn(name = "banda_id", nullable = false)
-    private Band banda;
-
     private String descripcion;
 
     @NotNull
@@ -45,4 +43,12 @@ public class Collaboration {
     @NotNull
     @Enumerated(EnumType.STRING)
     private CollaborationStatus estado;
+
+    @ManyToMany
+    @JoinTable(
+        name = "collaboration_members",
+        joinColumns = @JoinColumn(name = "collaboration_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> colaboradores = new ArrayList<>();
 }

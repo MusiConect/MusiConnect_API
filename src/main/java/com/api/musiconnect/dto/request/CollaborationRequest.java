@@ -12,7 +12,5 @@ public record CollaborationRequest(
     @NotNull
     LocalDate fechaFin,
     @NotNull
-    Long bandaId,
-    @NotNull
     Long usuarioId
 ) {}
