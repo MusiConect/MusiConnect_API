@@ -34,6 +34,10 @@ public class ConvocationService {
         User usuario = userRepository.findById(request.usuarioId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
 
+        // Validar disponibilidad del usuario
+        if (!Boolean.TRUE.equals(usuario.getDisponibilidad())) {
+            throw new BusinessRuleException("No puedes crear una convocatoria mientras estés como no disponible.");
+        }
         if (request.fechaLimite().isBefore(LocalDate.now())) {
             throw new BusinessRuleException("La fecha límite debe ser posterior a hoy.");
         }

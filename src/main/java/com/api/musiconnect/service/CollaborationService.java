@@ -7,18 +7,15 @@ import com.api.musiconnect.exception.BadRequestException;
 import com.api.musiconnect.exception.BusinessRuleException;
 import com.api.musiconnect.exception.ResourceNotFoundException;
 import com.api.musiconnect.mapper.CollaborationMapper;
-import com.api.musiconnect.model.entity.Band;
 import com.api.musiconnect.model.entity.User;
 import com.api.musiconnect.model.enums.CollaborationStatus;
 import com.api.musiconnect.model.entity.Collaboration;
-import com.api.musiconnect.repository.BandRepository;
 import com.api.musiconnect.repository.CollaborationRepository;
 import com.api.musiconnect.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +26,6 @@ public class CollaborationService {
 
     private final CollaborationRepository collaborationRepository;
     private final UserRepository userRepository;
-    private final BandRepository bandRepository;
 
     @Transactional
     public CollaborationResponse crearColaboracion(CollaborationRequest request) 
@@ -41,10 +37,12 @@ public class CollaborationService {
         User usuario = userRepository.findById(request.usuarioId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
 
-        Band banda = bandRepository.findById(request.bandaId())
-                .orElseThrow(() -> new ResourceNotFoundException("Banda no encontrada."));
+        // Validar disponibilidad del usuario
+        if (!Boolean.TRUE.equals(usuario.getDisponibilidad())) {
+            throw new BusinessRuleException("No puedes crear una colaboracion mientras estés como no disponible.");
+        }
 
-        Collaboration collaboration = CollaborationMapper.toEntity(request, usuario, banda);
+        Collaboration collaboration = CollaborationMapper.toEntity(request, usuario);
         return CollaborationMapper.toResponse(collaborationRepository.save(collaboration));
     }
     
@@ -94,4 +92,48 @@ public class CollaborationService {
             .map(CollaborationMapper::toResponse)
             .toList();
     }
+
+    public List<CollaborationResponse> getAllCollaborations() {
+        List<Collaboration> colaboraciones = collaborationRepository.findAll();
+        return colaboraciones.stream()
+                .map(CollaborationMapper::toResponse)
+                .toList();
+    }
+
+    public CollaborationResponse getById(Long id) {
+        Collaboration c = collaborationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Colaboración no encontrada."));
+        return CollaborationMapper.toResponse(c);
+    }
+
+    public Map<String, String> addColaborador(Long collaborationId, Long userId) {
+        Collaboration colaboracion = collaborationRepository.findById(collaborationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Colaboración no encontrada."));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
+
+        if (!Boolean.TRUE.equals(user.getDisponibilidad())) {
+            throw new BusinessRuleException("Este usuario no está disponible para colaborar.");
+        }
+
+        if (colaboracion.getColaboradores().contains(user)) {
+            throw new BusinessRuleException("El usuario ya forma parte de la colaboración.");
+        }
+
+        colaboracion.getColaboradores().add(user);
+        collaborationRepository.save(colaboracion);
+
+        return Map.of("message", "Colaborador añadido correctamente");
+    }
+
+    public Map<String, String> deleteCollaboration(Long id) {
+        if (!collaborationRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Colaboración no encontrada.");
+        }
+
+        collaborationRepository.deleteById(id);
+        return Map.of("message", "Colaboración eliminada correctamente");
+    }
+
 }

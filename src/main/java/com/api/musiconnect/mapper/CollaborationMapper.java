@@ -2,37 +2,44 @@ package com.api.musiconnect.mapper;
 
 import com.api.musiconnect.dto.request.CollaborationRequest;
 import com.api.musiconnect.dto.response.CollaborationResponse;
-import com.api.musiconnect.model.entity.Band;
 import com.api.musiconnect.model.entity.Collaboration;
 import com.api.musiconnect.model.entity.User;
 import com.api.musiconnect.model.enums.CollaborationStatus;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 public class CollaborationMapper {
 
-    // Para crear una nueva entidad desde el request
-    public static Collaboration toEntity(CollaborationRequest request, User usuario, Band banda) {
+    public static Collaboration toEntity(CollaborationRequest request, User usuario) {
         return Collaboration.builder()
-            .titulo(request.titulo())
-            .descripcion(request.descripcion())
-            .fechaInicio(request.fechaInicio())
-            .fechaFin(request.fechaFin())
-            .estado(CollaborationStatus.PENDIENTE) // SEGUN EL US16: siempre inicia como pendiente
-            .usuario(usuario)
-            .banda(banda)
-            .build();
+                .titulo(request.titulo())
+                .descripcion(request.descripcion())
+                .fechaInicio(request.fechaInicio())
+                .fechaFin(request.fechaFin())
+                .estado(CollaborationStatus.PENDIENTE)
+                .usuario(usuario)
+                .build();
     }
 
-    // Para retornar los datos al cliente
-    public static CollaborationResponse toResponse(Collaboration entity) {
+    public static CollaborationResponse toResponse(Collaboration colaboracion) {
+        List<String> colaboradores = Optional.ofNullable(colaboracion.getColaboradores())
+            .orElse(List.of())  // previene null
+            .stream()
+            .map(User::getNombreArtistico)
+            .collect(Collectors.toList());
+
+
         return new CollaborationResponse(
-            entity.getColaboracionId(),
-            entity.getTitulo(),
-            entity.getDescripcion(),
-            entity.getFechaInicio(),
-            entity.getFechaFin(),
-            entity.getEstado(),
-            entity.getUsuario().getNombreArtistico(),
-            entity.getBanda().getNombre()
+                colaboracion.getColaboracionId(),
+                colaboracion.getTitulo(),
+                colaboracion.getDescripcion(),
+                colaboracion.getFechaInicio(),
+                colaboracion.getFechaFin(),
+                colaboracion.getEstado(),
+                colaboracion.getUsuario().getNombreArtistico(),
+                colaboradores
         );
     }
 }

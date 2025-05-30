@@ -32,7 +32,6 @@ public class User {
     @Size(min = 4, max = 50)
     private String nombreArtistico;
 
-    @NotBlank
     private String instrumentos;
 
     @Size(max = 300)
@@ -40,7 +39,6 @@ public class User {
 
     private String ubicacion;
 
-    @NotNull
     private Boolean disponibilidad;
 
     @ManyToOne

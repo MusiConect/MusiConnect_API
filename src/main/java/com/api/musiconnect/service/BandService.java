@@ -32,6 +32,7 @@ public class BandService {
 
     @Transactional
     public BandResponse crearBanda(BandRequest request) {
+
         if (bandRepository.existsByNombreIgnoreCase(request.nombre())) {
             throw new BusinessRuleException("Ya existe una banda con este nombre.");
         }
@@ -39,6 +40,10 @@ public class BandService {
         User admin = userRepository.findById(request.adminId())
                 .orElseThrow(() -> new BusinessRuleException("Usuario administrador no encontrado."));
 
+        // Validar disponibilidad del usuario
+        if (!Boolean.TRUE.equals(admin.getDisponibilidad())) {
+            throw new BusinessRuleException("No puedes crear una banda mientras estés como no disponible.");
+        }
         List<MusicGenreEnum> generosEnum;
         try {
             generosEnum = request.generos().stream()
@@ -69,6 +74,10 @@ public class BandService {
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("El usuario no existe."));
 
+        // Validar disponibilidad del usuario que se desea agregar
+        if (!Boolean.TRUE.equals(user.getDisponibilidad())) {
+            throw new BusinessRuleException("Este usuario no está disponible para unirse a una banda.");
+        }
         if (banda.getMiembros().contains(user)) {
             throw new BusinessRuleException("Este usuario ya es miembro de la banda.");
         }

@@ -2,6 +2,7 @@ package com.api.musiconnect.dto.response;
 
 import com.api.musiconnect.model.enums.CollaborationStatus;
 import java.time.LocalDate;
+import java.util.List;
 
 public record CollaborationResponse(
     Long colaboracionId,
@@ -11,5 +12,5 @@ public record CollaborationResponse(
     LocalDate fechaFin,
     CollaborationStatus estado,
     String nombreUsuario,
-    String nombreBanda
+    List<String> colaboradores
 ) {}
