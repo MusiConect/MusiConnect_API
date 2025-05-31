@@ -100,10 +100,18 @@ public class CollaborationService {
                 .toList();
     }
 
-    public CollaborationResponse getById(Long id) {
-        Collaboration c = collaborationRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Colaboración no encontrada."));
-        return CollaborationMapper.toResponse(c);
+    public List<CollaborationResponse> getByNombreArtistico(String nombreArtistico) {
+        if (nombreArtistico == null || nombreArtistico.trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre artístico es obligatorio.");
+        }
+
+        // en esta parte se ignora mayúsculas/minúsculas y trim
+        String clean = nombreArtistico.trim();
+        List<Collaboration> colaboraciones = collaborationRepository.findByUsuario_NombreArtisticoIgnoreCase(clean);
+
+        return colaboraciones.stream()
+                .map(CollaborationMapper::toResponse)
+                .toList();
     }
 
     public Map<String, String> addColaborador(Long collaborationId, Long userId) {

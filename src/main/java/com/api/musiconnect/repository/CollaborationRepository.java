@@ -9,5 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CollaborationRepository extends JpaRepository<Collaboration, Long> {
     List<Collaboration> findByEstadoIn(List<CollaborationStatus> estados);
+    List<Collaboration> findByUsuario_NombreArtisticoIgnoreCase(String nombreArtistico);
 
 }
