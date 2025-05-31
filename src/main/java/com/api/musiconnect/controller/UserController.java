@@ -1,8 +1,10 @@
 package com.api.musiconnect.controller;
 
+import com.api.musiconnect.dto.request.LoginRequest;
 import com.api.musiconnect.dto.request.UserAvailabilityRequest;
 import com.api.musiconnect.dto.request.UserRequest;
 import com.api.musiconnect.dto.request.UserUpdateRequest;
+import com.api.musiconnect.dto.response.LoginResponse;
 import com.api.musiconnect.dto.response.UserResponse;
 import com.api.musiconnect.service.UserService;
 import jakarta.validation.Valid;
@@ -43,4 +45,10 @@ public class UserController {
         Map<String, String> response = userService.updateAvailability(userId, request);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(userService.login(request));
+    }
+
 }
