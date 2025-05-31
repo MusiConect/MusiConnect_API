@@ -46,9 +46,9 @@ public class CollaborationController {
         return ResponseEntity.ok(collaborationService.getAllCollaborations());
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<CollaborationResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(collaborationService.getById(id));
+    @GetMapping("/usuario/{nombreArtistico}")
+    public ResponseEntity<List<CollaborationResponse>> getByNombreArtistico(@PathVariable String nombreArtistico) {
+        return ResponseEntity.ok(collaborationService.getByNombreArtistico(nombreArtistico));
     }
 
     @PatchMapping("/{id}/add-member/{userId}")
