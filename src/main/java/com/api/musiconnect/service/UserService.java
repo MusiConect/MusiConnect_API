@@ -1,8 +1,10 @@
 package com.api.musiconnect.service;
 
+import com.api.musiconnect.dto.request.LoginRequest;
 import com.api.musiconnect.dto.request.UserAvailabilityRequest;
 import com.api.musiconnect.dto.request.UserRequest;
 import com.api.musiconnect.dto.request.UserUpdateRequest;
+import com.api.musiconnect.dto.response.LoginResponse;
 import com.api.musiconnect.dto.response.UserResponse;
 import com.api.musiconnect.exception.BusinessRuleException;
 import com.api.musiconnect.exception.ResourceNotFoundException;
@@ -73,6 +75,19 @@ public class UserService {
 
         return UserMapper.toResponse(savedUser);
     }
+
+    @Transactional
+    public LoginResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.email())
+            .orElseThrow(() -> new BusinessRuleException("Credenciales inválidas."));
+
+        if (!user.getPassword().equals(request.password())) {
+            throw new BusinessRuleException("Credenciales inválidas.");
+        }
+
+        return new LoginResponse("Inicio de sesión exitoso.", user.getUserId(), user.getNombreArtistico());
+    }
+
 
     @Transactional
     public Map<String, String> updateUser(Long userId, UserUpdateRequest request) {
