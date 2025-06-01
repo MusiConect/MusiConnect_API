@@ -3,12 +3,17 @@ package com.api.musiconnect.service.unit;
 import com.api.musiconnect.dto.request.CollaborationRequest;
 import com.api.musiconnect.dto.request.CollaborationUpdateRequest;
 import com.api.musiconnect.dto.response.CollaborationResponse;
+import com.api.musiconnect.dto.response.UserResponse;
 import com.api.musiconnect.exception.BadRequestException;
 import com.api.musiconnect.exception.BusinessRuleException;
 import com.api.musiconnect.exception.ResourceNotFoundException;
 import com.api.musiconnect.model.entity.Collaboration;
+import com.api.musiconnect.model.entity.MusicGenre;
+import com.api.musiconnect.model.entity.Role;
 import com.api.musiconnect.model.entity.User;
 import com.api.musiconnect.model.enums.CollaborationStatus;
+import com.api.musiconnect.model.enums.MusicGenreEnum;
+import com.api.musiconnect.model.enums.RoleEnum;
 import com.api.musiconnect.repository.CollaborationRepository;
 import com.api.musiconnect.repository.UserRepository;
 import com.api.musiconnect.service.CollaborationService;
@@ -24,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -100,7 +106,32 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP03 - Crear colaboración con usuario no disponible")
+    @DisplayName("CP03 - Crear colaboración con título duplicado")
+    void createCollaboration_duplicatedTitle_throwsException() {
+        // Arrange
+        String tituloDuplicado = "Jazz Nights";
+        CollaborationRequest request = new CollaborationRequest(
+                tituloDuplicado,
+                "Sesiones de jazz semanales",
+                LocalDate.now(),
+                LocalDate.now().plusDays(10),
+                1L
+        );
+
+        when(collaborationRepository.existsByTituloIgnoreCase(tituloDuplicado))
+                .thenReturn(true); // Simula que ya existe ese título
+
+        // Act & Assert
+        BusinessRuleException exception = assertThrows(BusinessRuleException.class, () ->
+                collaborationService.crearColaboracion(request)
+        );
+
+        assertEquals("Ya existe una colaboración con este título.", exception.getMessage());
+        verify(collaborationRepository, never()).save(any(Collaboration.class)); // no debería guardar
+    }
+
+    @Test
+    @DisplayName("CP04 - Crear colaboración con usuario no disponible")
     void createCollaboration_userNotAvailable_throwsException() {
         // Arrange
         CollaborationRequest request = new CollaborationRequest(
@@ -120,11 +151,11 @@ class CollaborationServiceUnitTest {
         assertThrows(BusinessRuleException.class, () -> collaborationService.crearColaboracion(request));
 
         verify(userRepository).findById(1L);
-        verifyNoInteractions(collaborationRepository); // No debe intentar guardar nada
+        verify(collaborationRepository, never()).save(any(Collaboration.class));
     }
 
     @Test
-    @DisplayName("CP04 - Crear colaboración con usuario inexistente")
+    @DisplayName("CP05 - Crear colaboración con usuario inexistente")
     void createCollaboration_userNotFound_throwsException() {
         // Arrange
         CollaborationRequest request = new CollaborationRequest(
@@ -140,14 +171,14 @@ class CollaborationServiceUnitTest {
         // Act + Assert
         assertThrows(ResourceNotFoundException.class, () -> collaborationService.crearColaboracion(request));
 
-        verify(userRepository).findById(99L);
-        verifyNoInteractions(collaborationRepository);
+        verify(collaborationRepository).existsByTituloIgnoreCase("Colaboración sin usuario");
+        verify(collaborationRepository, never()).save(any());
     }
 
     // Test para actualizar colaboraciones
 
     @Test
-    @DisplayName("CP05 - Editar colaboración válida")
+    @DisplayName("CP06 - Editar colaboración válida")
     void updateCollaboration_validData_success() {
         // Arrange
         Long collaborationId = 10L;
@@ -181,7 +212,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP06 - Editar colaboración no encontrada")
+    @DisplayName("CP07 - Editar colaboración no encontrada")
     void updateCollaboration_notFound_throwsException() {
         // Arrange
         Long collaborationId = 999L;
@@ -205,7 +236,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP07 - Usuario sin permisos para editar la colaboración")
+    @DisplayName("CP08 - Usuario sin permisos para editar la colaboración")
     void updateCollaboration_userNotOwner_throwsException() {
         // Arrange
         Long collaborationId = 20L;
@@ -235,7 +266,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP08 - Editar colaboración con fechas inválidas")
+    @DisplayName("CP09 - Editar colaboración con fechas inválidas")
     void updateCollaboration_invalidDates_throwsException() {
         // Arrange
         Long collaborationId = 30L;
@@ -265,7 +296,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP09 - Editar colaboración con estado inválido")
+    @DisplayName("CP10 - Editar colaboración con estado inválido")
     void updateCollaboration_invalidStatus_throwsException() {
         // Arrange
         Long collaborationId = 40L;
@@ -297,7 +328,7 @@ class CollaborationServiceUnitTest {
     // Test para listar colaboraciones activas
 
     @Test
-    @DisplayName("CP10 - Listar colaboraciones activas exitosamente")
+    @DisplayName("CP11 - Listar colaboraciones activas exitosamente")
     void listarColaboracionesActivas_success() {
         // Arrange
         User usuario = new User();
@@ -326,7 +357,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP11 - No hay colaboraciones activas")
+    @DisplayName("CP12 - No hay colaboraciones activas")
     void listarColaboracionesActivas_emptyList_throwsException() {
         // Arrange
         when(collaborationRepository.findByEstadoIn(
@@ -343,7 +374,7 @@ class CollaborationServiceUnitTest {
     // Test para obtener todas las colaboraciones
 
     @Test
-    @DisplayName("CP12 - Obtener todas las colaboraciones exitosamente")
+    @DisplayName("CP13 - Obtener todas las colaboraciones exitosamente")
     void getAllCollaborations_success() {
         // Arrange
         User usuario = new User();
@@ -367,7 +398,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP13 - No hay colaboraciones registradas")
+    @DisplayName("CP14 - No hay colaboraciones registradas")
     void getAllCollaborations_emptyList_returnsEmpty() {
         // Arrange
         when(collaborationRepository.findAll()).thenReturn(List.of());
@@ -384,7 +415,7 @@ class CollaborationServiceUnitTest {
     // Test para obtener colaboraciones por nombre artístico
 
     @Test
-    @DisplayName("CP14 - Nombre artístico válido con resultados")
+    @DisplayName("CP15 - Nombre artístico válido con resultados")
     void getByNombreArtistico_withResults_returnsList() {
         User usuario = new User();
         usuario.setNombreArtistico("José C.");
@@ -402,7 +433,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP15 - Nombre artístico válido sin resultados")
+    @DisplayName("CP16 - Nombre artístico válido sin resultados")
     void getByNombreArtistico_noResults_returnsEmptyList() {
         when(collaborationRepository.findByUsuario_NombreArtisticoIgnoreCase("Desconocido")).thenReturn(List.of());
 
@@ -414,7 +445,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP16 - Nombre artístico es null")
+    @DisplayName("CP17 - Nombre artístico es null")
     void getByNombreArtistico_null_throwsException() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
             () -> collaborationService.getByNombreArtistico(null));
@@ -423,7 +454,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP17 - Nombre artístico es vacío o espacios")
+    @DisplayName("CP18 - Nombre artístico es vacío o espacios")
     void getByNombreArtistico_emptyOrBlank_throwsException() {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
             () -> collaborationService.getByNombreArtistico("   "));
@@ -434,7 +465,7 @@ class CollaborationServiceUnitTest {
     // Test para agregar colaboradores a una colaboración
 
     @Test
-    @DisplayName("CP18 - Agregar colaborador exitosamente por nombre artístico")
+    @DisplayName("CP19 - Agregar colaborador exitosamente por nombre artístico")
     void addColaborador_success() {
         Collaboration colaboracion = new Collaboration();
         colaboracion.setColaboradores(new ArrayList<>());
@@ -458,7 +489,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP19 - Colaboración no encontrada")
+    @DisplayName("CP20 - Colaboración no encontrada")
     void addColaborador_collaborationNotFound() {
         when(collaborationRepository.findById(1L)).thenReturn(Optional.empty());
 
@@ -467,7 +498,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP20 - Usuario no encontrado por nombre artístico")
+    @DisplayName("CP21 - Usuario no encontrado por nombre artístico")
     void addColaborador_userNotFound() {
         Collaboration colaboracion = new Collaboration();
         when(collaborationRepository.findById(1L)).thenReturn(Optional.of(colaboracion));
@@ -479,7 +510,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP21 - Usuario no disponible para colaborar")
+    @DisplayName("CP22 - Usuario no disponible para colaborar")
     void addColaborador_userNotAvailable() {
         Collaboration colaboracion = new Collaboration();
         User user = new User();
@@ -494,7 +525,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP22 - Usuario ya es colaborador")
+    @DisplayName("CP23 - Usuario ya es colaborador")
     void addColaborador_userAlreadyCollaborator() {
         User user = new User();
         user.setUserId(2L);
@@ -516,7 +547,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP23 - Usuario es el creador de la colaboración")
+    @DisplayName("CP24 - Usuario es el creador de la colaboración")
     void addColaborador_userIsCreator() {
         User user = new User();
         user.setUserId(2L);
@@ -535,23 +566,45 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP24 - Nombre artístico es null")
+    @DisplayName("CP25 - Nombre artístico es null")
     void addColaborador_nombreArtisticoNull() {
+        // Arrange
+        Collaboration colaboracion = new Collaboration();
+        colaboracion.setUsuario(new User()); // opcionalmente simular creador
+        colaboracion.setColaboradores(new ArrayList<>());
+
+        when(collaborationRepository.findById(1L)).thenReturn(Optional.of(colaboracion));
+
+        // Act + Assert
         assertThrows(IllegalArgumentException.class,
                 () -> collaborationService.addColaborador(1L, null));
+
+        verify(collaborationRepository).findById(1L);
+        verifyNoInteractions(userRepository);
     }
 
     @Test
-    @DisplayName("CP25 - Nombre artístico es vacío o espacios")
+    @DisplayName("CP26 - Nombre artístico es vacío o espacios")
     void addColaborador_nombreArtisticoVacio() {
+        // Arrange
+        Collaboration colaboracion = new Collaboration();
+        colaboracion.setUsuario(new User());
+        colaboracion.setColaboradores(new ArrayList<>());
+
+        when(collaborationRepository.findById(1L)).thenReturn(Optional.of(colaboracion));
+
+        // Act + Assert
         assertThrows(IllegalArgumentException.class,
                 () -> collaborationService.addColaborador(1L, "   "));
+
+        verify(collaborationRepository).findById(1L);
+        verifyNoInteractions(userRepository);
     }
 
 // Test para eliminar colaboraciones
 
     @Test
-    @DisplayName("CP26 - Eliminación exitosa por el creador")
+    @DisplayName("CP27 - Eliminación exitosa por el creador")
     void deleteCollaboration_success() {
         User creador = new User();
         creador.setUserId(1L);
@@ -568,21 +621,21 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP27 - collaborationId es null")
+    @DisplayName("CP28 - collaborationId es null")
     void deleteCollaboration_nullCollaborationId() {
         assertThrows(IllegalArgumentException.class,
                 () -> collaborationService.deleteCollaboration(null, 1L));
     }
 
     @Test
-    @DisplayName("CP28 - userId es null")
+    @DisplayName("CP29 - userId es null")
     void deleteCollaboration_nullUserId() {
         assertThrows(IllegalArgumentException.class,
                 () -> collaborationService.deleteCollaboration(10L, null));
     }
 
     @Test
-    @DisplayName("CP29 - Colaboración no encontrada")
+    @DisplayName("CP30 - Colaboración no encontrada")
     void deleteCollaboration_notFound() {
         when(collaborationRepository.findById(10L)).thenReturn(Optional.empty());
 
@@ -591,7 +644,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP30 - Usuario no es el creador")
+    @DisplayName("CP31 - Usuario no es el creador")
     void deleteCollaboration_userNotCreator() {
         User creador = new User();
         creador.setUserId(99L);
@@ -606,7 +659,7 @@ class CollaborationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP31 - El método getUsuario() devuelve null")
+    @DisplayName("CP32 - El método getUsuario() devuelve null")
     void deleteCollaboration_usuarioNull() {
         Collaboration colaboracion = new Collaboration();
         colaboracion.setUsuario(null);
@@ -615,5 +668,96 @@ class CollaborationServiceUnitTest {
 
         assertThrows(NullPointerException.class,
                 () -> collaborationService.deleteCollaboration(10L, 1L));
+    }
+
+    @Test
+    @DisplayName("CP33 - Obtener colaboración por ID existente")
+    void getById_success() {
+        // Arrange
+        User creador = new User();
+        creador.setUserId(1L);
+        creador.setNombreArtistico("Artista Ejemplo");
+
+        Collaboration colaboracion = new Collaboration();
+        colaboracion.setColaboracionId(1L);
+        colaboracion.setTitulo("Colaboración Test");
+        colaboracion.setDescripcion("Descripción");
+        colaboracion.setFechaInicio(LocalDate.now());
+        colaboracion.setFechaFin(LocalDate.now().plusDays(10));
+        colaboracion.setEstado(CollaborationStatus.PENDIENTE);
+        colaboracion.setUsuario(creador); // Asignar el usuario al creador
+
+        when(collaborationRepository.findById(1L)).thenReturn(Optional.of(colaboracion));
+
+        // Act
+        CollaborationResponse response = collaborationService.getById(1L);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals("Colaboración Test", response.titulo());
+        verify(collaborationRepository).findById(1L);
+    }
+
+    @Test
+    @DisplayName("CP34 - Obtener colaboración por ID inexistente")
+    void getById_notFound() {
+        when(collaborationRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> collaborationService.getById(99L));
+        verify(collaborationRepository).findById(99L);
+    }
+
+    @Test
+    @DisplayName("CP35 - Listar colaboradores de colaboración existente")
+    void listarColaboradores_success() {
+        // Arrange
+        User colaborador = new User();
+        colaborador.setUserId(2L);
+        colaborador.setNombreArtistico("Artista 2");
+        colaborador.setEmail("artista2@mail.com");
+        colaborador.setInstrumentos("Guitarra");
+        colaborador.setBio("Bio del colaborador");
+        colaborador.setUbicacion("Ciudad X");
+        colaborador.setDisponibilidad(true);
+        
+        // Asignar rol simulado
+        Role role = new Role();
+        role.setName(RoleEnum.MUSICO);
+        colaborador.setRole(role);
+
+        // Asignar género musical simulado
+        MusicGenre genero = new MusicGenre();
+        genero.setNombre(MusicGenreEnum.ROCK);
+        colaborador.setGenerosMusicales(List.of(genero));
+
+        Collaboration colaboracion = new Collaboration();
+        colaboracion.setColaboracionId(1L);
+        colaboracion.setColaboradores(List.of(colaborador));
+
+        when(collaborationRepository.findById(1L)).thenReturn(Optional.of(colaboracion));
+
+        // Act
+        List<UserResponse> responses = collaborationService.listarColaboradores(1L);
+
+        // Assert
+        assertEquals(1, responses.size());
+        assertEquals("Artista 2", responses.get(0).nombreArtistico());
+        verify(collaborationRepository).findById(1L);
+    }
+
+    @Test
+    @DisplayName("CP36 - Listar colaboradores de colaboración inexistente")
+    void listarColaboradores_notFound() {
+        when(collaborationRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> collaborationService.listarColaboradores(99L));
+        verify(collaborationRepository).findById(99L);
+    }
+
+    @Test
+    @DisplayName("CP37 - Listar estados de colaboración")
+    void listarEstadosColaboracion_success() {
+        List<String> estados = collaborationService.listarEstadosColaboracion();
+        assertEquals(Arrays.asList("PENDIENTE", "EN_PROGRESO", "FINALIZADO"), estados);
     }
 } 
