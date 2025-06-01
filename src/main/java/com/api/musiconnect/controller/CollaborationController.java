@@ -3,6 +3,7 @@ package com.api.musiconnect.controller;
 import com.api.musiconnect.dto.request.CollaborationRequest;
 import com.api.musiconnect.dto.request.CollaborationUpdateRequest;
 import com.api.musiconnect.dto.response.CollaborationResponse;
+import com.api.musiconnect.dto.response.UserResponse;
 import com.api.musiconnect.service.CollaborationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,15 +52,32 @@ public class CollaborationController {
         return ResponseEntity.ok(collaborationService.getByNombreArtistico(nombreArtistico));
     }
 
-    @PatchMapping("/{id}/add-member/{userId}")
+    @PatchMapping("/{id}/add-member")
     public ResponseEntity<Map<String, String>> addColaborador(
             @PathVariable Long id,
-            @PathVariable Long userId) {
-        return ResponseEntity.ok(collaborationService.addColaborador(id, userId));
+            @RequestParam String nombreArtistico) {
+        return ResponseEntity.ok(collaborationService.addColaborador(id, nombreArtistico));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteColaboration(@PathVariable Long id) {
-        return ResponseEntity.ok(collaborationService.deleteCollaboration(id));
+    @DeleteMapping("/{id}/user/{userId}")
+    public ResponseEntity<Map<String, String>> deleteColaboration(
+            @PathVariable Long id,
+            @PathVariable Long userId) {
+        return ResponseEntity.ok(collaborationService.deleteCollaboration(id, userId));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CollaborationResponse> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(collaborationService.getById(id));
+    }
+
+    @GetMapping("/{id}/colaboradores")
+    public ResponseEntity<List<UserResponse>> listarColaboradores(@PathVariable Long id) {
+        return ResponseEntity.ok(collaborationService.listarColaboradores(id));
+    }
+
+    @GetMapping("/estados")
+    public ResponseEntity<List<String>> getEstados() {
+        return ResponseEntity.ok(collaborationService.listarEstadosColaboracion());
     }
 }
