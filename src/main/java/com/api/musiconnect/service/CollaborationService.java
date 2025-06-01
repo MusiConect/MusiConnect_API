@@ -114,33 +114,48 @@ public class CollaborationService {
                 .toList();
     }
 
-    public Map<String, String> addColaborador(Long collaborationId, Long userId) {
+public Map<String, String> addColaborador(Long collaborationId, String nombreArtistico) {
+    Collaboration colaboracion = collaborationRepository.findById(collaborationId)
+            .orElseThrow(() -> new ResourceNotFoundException("Colaboración no encontrada."));
+
+    if (nombreArtistico == null || nombreArtistico.trim().isEmpty()) {
+        throw new IllegalArgumentException("Debe proporcionar un nombre artístico válido.");
+    }
+
+    User user = userRepository.findByNombreArtisticoIgnoreCase(nombreArtistico.trim())
+            .orElseThrow(() -> new ResourceNotFoundException("Usuario con ese nombre artístico no encontrado."));
+
+    if (!Boolean.TRUE.equals(user.getDisponibilidad())) {
+        throw new BusinessRuleException("Este usuario no está disponible para colaborar.");
+    }
+
+    if (colaboracion.getUsuario().getUserId().equals(user.getUserId())) {
+        throw new BusinessRuleException("El creador no puede agregarse como colaborador.");
+    }
+
+    if (colaboracion.getColaboradores().contains(user)) {
+        throw new BusinessRuleException("El usuario ya forma parte de la colaboración.");
+    }
+
+    colaboracion.getColaboradores().add(user);
+    collaborationRepository.save(colaboracion);
+
+    return Map.of("message", "Colaborador añadido correctamente");
+}
+
+    public Map<String, String> deleteCollaboration(Long collaborationId, Long userId) {
+        if (collaborationId == null || userId == null) {
+            throw new IllegalArgumentException("ID de colaboración y usuario requeridos.");
+        }
+
         Collaboration colaboracion = collaborationRepository.findById(collaborationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Colaboración no encontrada."));
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
-
-        if (!Boolean.TRUE.equals(user.getDisponibilidad())) {
-            throw new BusinessRuleException("Este usuario no está disponible para colaborar.");
+        if (!colaboracion.getUsuario().getUserId().equals(userId)) {
+            throw new BusinessRuleException("Solo el creador puede eliminar esta colaboración.");
         }
 
-        if (colaboracion.getColaboradores().contains(user)) {
-            throw new BusinessRuleException("El usuario ya forma parte de la colaboración.");
-        }
-
-        colaboracion.getColaboradores().add(user);
-        collaborationRepository.save(colaboracion);
-
-        return Map.of("message", "Colaborador añadido correctamente");
-    }
-
-    public Map<String, String> deleteCollaboration(Long id) {
-        if (!collaborationRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Colaboración no encontrada.");
-        }
-
-        collaborationRepository.deleteById(id);
+        collaborationRepository.deleteById(collaborationId);
         return Map.of("message", "Colaboración eliminada correctamente");
     }
 

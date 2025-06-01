@@ -51,15 +51,17 @@ public class CollaborationController {
         return ResponseEntity.ok(collaborationService.getByNombreArtistico(nombreArtistico));
     }
 
-    @PatchMapping("/{id}/add-member/{userId}")
+    @PatchMapping("/{id}/add-member")
     public ResponseEntity<Map<String, String>> addColaborador(
             @PathVariable Long id,
-            @PathVariable Long userId) {
-        return ResponseEntity.ok(collaborationService.addColaborador(id, userId));
+            @RequestParam String nombreArtistico) {
+        return ResponseEntity.ok(collaborationService.addColaborador(id, nombreArtistico));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteColaboration(@PathVariable Long id) {
-        return ResponseEntity.ok(collaborationService.deleteCollaboration(id));
+    @DeleteMapping("/{id}/user/{userId}")
+    public ResponseEntity<Map<String, String>> deleteColaboration(
+            @PathVariable Long id,
+            @PathVariable Long userId) {
+        return ResponseEntity.ok(collaborationService.deleteCollaboration(id, userId));
     }
 }
