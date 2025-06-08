@@ -43,9 +43,14 @@ public class AuthService {
         List<MusicGenre> generos = List.of();
 
         if (request.generosMusicales() != null && !request.generosMusicales().isEmpty()) {
-            List<MusicGenreEnum> generosEnum = request.generosMusicales().stream()
-                    .map(nombre -> MusicGenreEnum.valueOf(nombre.toUpperCase()))
-                    .toList();
+            List<MusicGenreEnum> generosEnum;
+            try {
+                generosEnum = request.generosMusicales().stream()
+                        .map(nombre -> MusicGenreEnum.valueOf(nombre.toUpperCase()))
+                        .toList();
+            } catch (IllegalArgumentException e) {
+                throw new BusinessRuleException("Género musical inválido.");
+            }
 
             generos = musicGenreRepository.findAllByNombreIn(generosEnum);
 
