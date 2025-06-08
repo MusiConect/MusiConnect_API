@@ -47,8 +47,6 @@ public class FollowServiceUnitTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    // Aquí irán los tests...
-
     @Test
     @DisplayName("CP01 - Follower no existe")
     void crearFollow_followerNoExiste_exception() {
