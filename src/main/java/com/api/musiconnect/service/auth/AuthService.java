@@ -72,10 +72,10 @@ public class AuthService {
     @Transactional
     public LoginResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new BusinessRuleException("Credenciales inválidas."));
+                .orElseThrow(() -> new BusinessRuleException("Credenciales inválidas (El email no existe)."));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new BusinessRuleException("Credenciales inválidas.");
+            throw new BusinessRuleException("Credenciales inválidas (La contraseña es incorrecta).");
         }
 
         String token = jwtUtil.generateToken(user.getEmail());
