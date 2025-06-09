@@ -36,6 +36,9 @@ public class ConvocationServiceUnitTest {
     @Mock
     private ConvocationRepository convocationRepository;
 
+    @Mock
+    private ConvocationFavoriteRepository convocationFavoriteRepository;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
