@@ -85,4 +85,14 @@ public class PostService {
 
         return ComentarioMapper.toResponse(comentarioRepository.save(comentario));
     }
+    
+    public List<ComentarioResponse> listarComentarios(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Publicación no encontrada."));
+
+        return comentarioRepository.findByPost(post).stream()
+                .map(ComentarioMapper::toResponse)
+                .toList();
+    }
+
 }

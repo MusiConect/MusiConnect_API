@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/posts")
 @RequiredArgsConstructor
@@ -34,4 +36,10 @@ public class PostController {
         @Valid @RequestBody ComentarioRequest request) {
         return ResponseEntity.ok(postService.comentarPost(postId, request));
     }
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<List<ComentarioResponse>> listarComentarios(@PathVariable Long postId) {
+        return ResponseEntity.ok(postService.listarComentarios(postId));
+    }
+
+
 }
