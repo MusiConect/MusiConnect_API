@@ -2,6 +2,7 @@ package com.api.musiconnect.service.unit;
 
 import com.api.musiconnect.dto.request.ConvocationRequest;
 import com.api.musiconnect.dto.request.ConvocationUpdateRequest;
+import com.api.musiconnect.dto.request.FavoriteConvocationRequest;
 import com.api.musiconnect.dto.response.ConvocationResponse;
 import com.api.musiconnect.exception.BusinessRuleException;
 import com.api.musiconnect.exception.ResourceNotFoundException;
@@ -35,6 +36,9 @@ public class ConvocationServiceUnitTest {
 
     @Mock
     private ConvocationRepository convocationRepository;
+
+    @Mock
+    private ConvocationFavoriteRepository convocationFavoriteRepository;
 
     @BeforeEach
     void setUp() {
@@ -300,6 +304,154 @@ public class ConvocationServiceUnitTest {
         assertThrows(BusinessRuleException.class, () -> convocationService.listarConvocatoriasFavoritasPorUsuario(userId));
     }
 
+    @Test
+    @DisplayName("CP17 - Marcar convocatoria como favorita exitosamente")
+    void marcarComoFavorita_valido_retornaMensaje() {
+        Long userId = 1L;
+        Long convocatoriaId = 10L;
+
+        FavoriteConvocationRequest request = new FavoriteConvocationRequest(userId, convocatoriaId);
+
+        User user = new User();
+        user.setUserId(userId);
+
+        Convocation conv = new Convocation();
+        conv.setActiva(true);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(convocationRepository.findById(convocatoriaId)).thenReturn(Optional.of(conv));
+        when(convocationFavoriteRepository.existsByUsuarioAndConvocatoria(user, conv)).thenReturn(false);
+
+        Map<String, String> result = convocationService.marcarComoFavorita(request);
+
+        verify(convocationFavoriteRepository).save(any(ConvocationFavorite.class));
+        assertEquals("Convocatoria marcada como favorita.", result.get("message"));
+    }
+
+    @Test
+    @DisplayName("CP18 - Marcar convocatoria favorita con usuario inexistente")
+    void marcarComoFavorita_usuarioNoExiste_lanzaExcepcion() {
+        FavoriteConvocationRequest request = new FavoriteConvocationRequest(99L, 1L);
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> convocationService.marcarComoFavorita(request));
+    }
+
+    @Test
+    @DisplayName("CP19 - Marcar convocatoria favorita con convocatoria inexistente")
+    void marcarComoFavorita_convocatoriaNoExiste_lanzaExcepcion() {
+        Long userId = 1L;
+        FavoriteConvocationRequest request = new FavoriteConvocationRequest(userId, 100L);
+        User user = new User();
+        user.setUserId(userId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(convocationRepository.findById(100L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> convocationService.marcarComoFavorita(request));
+    }
+
+    @Test
+    @DisplayName("CP20 - Marcar convocatoria inactiva como favorita")
+    void marcarComoFavorita_convocatoriaInactiva_lanzaExcepcion() {
+        Long userId = 1L;
+        Long convocatoriaId = 2L;
+        FavoriteConvocationRequest request = new FavoriteConvocationRequest(userId, convocatoriaId);
+
+        User user = new User();
+        user.setUserId(userId);
+        Convocation conv = new Convocation();
+        conv.setActiva(false);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(convocationRepository.findById(convocatoriaId)).thenReturn(Optional.of(conv));
+
+        assertThrows(BusinessRuleException.class, () -> convocationService.marcarComoFavorita(request));
+    }
+
+    @Test
+    @DisplayName("CP21 - Marcar convocatoria ya favorita nuevamente")
+    void marcarComoFavorita_yaExiste_lanzaExcepcion() {
+        Long userId = 1L;
+        Long convocatoriaId = 3L;
+        FavoriteConvocationRequest request = new FavoriteConvocationRequest(userId, convocatoriaId);
+
+        User user = new User();
+        user.setUserId(userId);
+        Convocation conv = new Convocation();
+        conv.setActiva(true);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(convocationRepository.findById(convocatoriaId)).thenReturn(Optional.of(conv));
+        when(convocationFavoriteRepository.existsByUsuarioAndConvocatoria(user, conv)).thenReturn(true);
+
+        assertThrows(BusinessRuleException.class, () -> convocationService.marcarComoFavorita(request));
+    }
+
+    @Test
+    @DisplayName("CP22 - Eliminar convocatoria favorita exitosamente")
+    void eliminarDeFavoritas_valido_retornaMensaje() {
+        Long userId = 1L;
+        Long convocatoriaId = 10L;
+        FavoriteConvocationRequest request = new FavoriteConvocationRequest(userId, convocatoriaId);
+
+        User user = new User();
+        user.setUserId(userId);
+
+        Convocation conv = new Convocation();
+
+        ConvocationFavorite fav = new ConvocationFavorite();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(convocationRepository.findById(convocatoriaId)).thenReturn(Optional.of(conv));
+        when(convocationFavoriteRepository.findByUsuarioAndConvocatoria(user, conv)).thenReturn(Optional.of(fav));
+
+        Map<String, String> result = convocationService.eliminarDeFavoritas(request);
+
+        verify(convocationFavoriteRepository).delete(fav);
+        assertEquals("Convocatoria removida de favoritas.", result.get("message"));
+    }
+
+    @Test
+    @DisplayName("CP23 - Eliminar favorita con usuario inexistente")
+    void eliminarDeFavoritas_usuarioNoExiste_lanzaExcepcion() {
+        FavoriteConvocationRequest request = new FavoriteConvocationRequest(99L, 1L);
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> convocationService.eliminarDeFavoritas(request));
+    }
+
+    @Test
+    @DisplayName("CP24 - Eliminar favorita con convocatoria inexistente")
+    void eliminarDeFavoritas_convocatoriaNoExiste_lanzaExcepcion() {
+        Long userId = 1L;
+        FavoriteConvocationRequest request = new FavoriteConvocationRequest(userId, 100L);
+        User user = new User();
+        user.setUserId(userId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(convocationRepository.findById(100L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> convocationService.eliminarDeFavoritas(request));
+    }
+
+    @Test
+    @DisplayName("CP25 - Eliminar favorita cuando no está marcada")
+    void eliminarDeFavoritas_noExisteFavorita_lanzaExcepcion() {
+        Long userId = 1L;
+        Long convocatoriaId = 5L;
+        FavoriteConvocationRequest request = new FavoriteConvocationRequest(userId, convocatoriaId);
+
+        User user = new User();
+        user.setUserId(userId);
+        Convocation conv = new Convocation();
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(convocationRepository.findById(convocatoriaId)).thenReturn(Optional.of(conv));
+        when(convocationFavoriteRepository.findByUsuarioAndConvocatoria(user, conv)).thenReturn(Optional.empty());
+
+        assertThrows(BusinessRuleException.class, () -> convocationService.eliminarDeFavoritas(request));
+    }
 
 }
 
