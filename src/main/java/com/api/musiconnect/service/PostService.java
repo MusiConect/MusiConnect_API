@@ -35,6 +35,14 @@ public class PostService {
         User usuario = userRepository.findById(request.usuarioId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
 
+        // Validación de contenido vacío
+        if (request.contenido() == null || request.contenido().trim().isEmpty()) {
+                throw new BusinessRuleException("El contenido de la publicación no puede estar vacío.");
+        }
+        if (request.contenido().length() > 500) {
+        throw new BusinessRuleException("El contenido de la publicación excede el límite de 500 caracteres.");
+        }
+
         Post post = PostMapper.toEntity(request, usuario);
         postRepository.save(post);
 
@@ -76,6 +84,12 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Publicación no encontrada."));
 
+        if (request.contenido() == null || request.contenido().trim().isEmpty()) {
+        throw new BusinessRuleException("El contenido del comentario no puede estar vacío.");
+        }
+        if (request.contenido().length() > 300) {
+        throw new BusinessRuleException("El contenido del comentario no debe exceder los 300 caracteres.");
+        }
         Comentario comentario = Comentario.builder()
                 .contenido(request.contenido())
                 .fechaComentario(LocalDateTime.now())

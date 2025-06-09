@@ -90,16 +90,32 @@ public class PostAndCommentServiceUnitTest {
     @Test
     @DisplayName("CP02: Crear publicación con contenido vacío")
     void crearPost_ContenidoVacio_DeberiaLanzarExcepcion() {
+        // Arrange
         PostRequest request = new PostRequest(1L, "", "TEXTO");
 
+        User mockUser = new User();
+        mockUser.setUserId(1L);
+        mockUser.setNombreArtistico("Usuario Prueba");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+
+        // Act & Assert
         assertThrows(BusinessRuleException.class, () -> postService.crearPost(request));
     }
 
     @Test
     @DisplayName("CP03: Crear publicación con contenido que excede límite")
     void crearPost_ContenidoExcedeLimite_DeberiaLanzarExcepcion() {
+        // Arrange
         PostRequest request = new PostRequest(1L, "a".repeat(501), "TEXTO");
 
+        User mockUser = new User();
+        mockUser.setUserId(1L);
+        mockUser.setNombreArtistico("Usuario Prueba");
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+
+        // Act & Assert
         assertThrows(BusinessRuleException.class, () -> postService.crearPost(request));
     }
 
@@ -173,12 +189,17 @@ public class PostAndCommentServiceUnitTest {
         verify(comentarioRepository).save(any(Comentario.class));
     }
 
-
-
     @Test
     @DisplayName("CP10: Crear comentario en post inexistente")
     void crearComentario_PostInexistente_DeberiaLanzarExcepcion() {
+        // Mock del usuario válido
+        User mockUser = new User();
+        mockUser.setUserId(1L);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(mockUser));
+
+        // Mock del post inexistente
         when(postRepository.findById(1L)).thenReturn(Optional.empty());
+
         ComentarioRequest request = new ComentarioRequest(1L, "Comentario válido");
 
         assertThrows(ResourceNotFoundException.class, () -> postService.comentarPost(1L, request));
@@ -187,18 +208,43 @@ public class PostAndCommentServiceUnitTest {
     @Test
     @DisplayName("CP11: Crear comentario con contenido vacío")
     void crearComentario_ContenidoVacio_DeberiaLanzarExcepcion() {
+        // Arrange
         ComentarioRequest request = new ComentarioRequest(1L, "");
-        when(userRepository.findById(1L)).thenReturn(Optional.of(usuarioAutenticado));
 
+        // Usuario mockeado
+        User usuarioAutenticado = new User();
+        usuarioAutenticado.setUserId(1L);
+
+        // Post mockeado
+        Post postExistente = new Post();
+        postExistente.setPostId(1L);
+
+        // Simular que el usuario y el post existen
+        when(userRepository.findById(1L)).thenReturn(Optional.of(usuarioAutenticado));
+        when(postRepository.findById(1L)).thenReturn(Optional.of(postExistente));
+
+        // Act & Assert
         assertThrows(BusinessRuleException.class, () -> postService.comentarPost(1L, request));
     }
 
     @Test
     @DisplayName("CP12: Crear comentario que excede límite")
     void crearComentario_ExcedeLimite_DeberiaLanzarExcepcion() {
+        // Arrange
         ComentarioRequest request = new ComentarioRequest(1L, "a".repeat(301));
-        when(userRepository.findById(1L)).thenReturn(Optional.of(usuarioAutenticado));
 
+        // Usuario mockeado
+        User usuarioAutenticado = new User();
+        usuarioAutenticado.setUserId(1L);
+
+        // Post mockeado
+        Post postExistente = new Post();
+        postExistente.setPostId(1L);
+
+        when(userRepository.findById(1L)).thenReturn(Optional.of(usuarioAutenticado));
+        when(postRepository.findById(1L)).thenReturn(Optional.of(postExistente));
+
+        // Act & Assert
         assertThrows(BusinessRuleException.class, () -> postService.comentarPost(1L, request));
     }
 
