@@ -206,7 +206,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP12 - Listar convocatorias activas correctamente")
+    @DisplayName("CP09 - Listar convocatorias activas correctamente")
     void listarConvocatoriasActivas_conResultados_retornaLista() {
         Convocation conv1 = new Convocation();
         conv1.setActiva(true);
@@ -233,7 +233,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP13 - Listar convocatorias activas sin resultados lanza excepción")
+    @DisplayName("CP10 - Listar convocatorias activas sin resultados lanza excepción")
     void listarConvocatoriasActivas_sinResultados_lanzaExcepcion() {
         Convocation inactiva = new Convocation();
         inactiva.setActiva(false);
@@ -244,7 +244,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP14 - Listar convocatorias favoritas activas del usuario")
+    @DisplayName("CP11 - Listar convocatorias favoritas activas del usuario")
     void listarConvocatoriasFavoritas_usuarioConFavoritosActivos_retornaLista() {
         Long userId = 1L;
 
@@ -279,7 +279,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP15 - Usuario no encontrado al listar favoritas")
+    @DisplayName("CP12 - Usuario no encontrado al listar favoritas")
     void listarConvocatoriasFavoritas_usuarioNoExiste_lanzaExcepcion() {
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -287,7 +287,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP16 - Usuario sin convocatorias favoritas activas")
+    @DisplayName("CP13 - Usuario sin convocatorias favoritas activas")
     void listarConvocatoriasFavoritas_sinActivas_lanzaExcepcion() {
         Long userId = 2L;
         User user = new User();
@@ -305,7 +305,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP17 - Marcar convocatoria como favorita exitosamente")
+    @DisplayName("CP14 - Marcar convocatoria como favorita exitosamente")
     void marcarComoFavorita_valido_retornaMensaje() {
         Long userId = 1L;
         Long convocatoriaId = 10L;
@@ -329,7 +329,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP18 - Marcar convocatoria favorita con usuario inexistente")
+    @DisplayName("CP15 - Marcar convocatoria favorita con usuario inexistente")
     void marcarComoFavorita_usuarioNoExiste_lanzaExcepcion() {
         FavoriteConvocationRequest request = new FavoriteConvocationRequest(99L, 1L);
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
@@ -338,7 +338,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP19 - Marcar convocatoria favorita con convocatoria inexistente")
+    @DisplayName("CP16 - Marcar convocatoria favorita con convocatoria inexistente")
     void marcarComoFavorita_convocatoriaNoExiste_lanzaExcepcion() {
         Long userId = 1L;
         FavoriteConvocationRequest request = new FavoriteConvocationRequest(userId, 100L);
@@ -352,7 +352,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP20 - Marcar convocatoria inactiva como favorita")
+    @DisplayName("CP17 - Marcar convocatoria inactiva como favorita")
     void marcarComoFavorita_convocatoriaInactiva_lanzaExcepcion() {
         Long userId = 1L;
         Long convocatoriaId = 2L;
@@ -370,7 +370,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP21 - Marcar convocatoria ya favorita nuevamente")
+    @DisplayName("CP18 - Marcar convocatoria ya favorita nuevamente")
     void marcarComoFavorita_yaExiste_lanzaExcepcion() {
         Long userId = 1L;
         Long convocatoriaId = 3L;
@@ -389,7 +389,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP22 - Eliminar convocatoria favorita exitosamente")
+    @DisplayName("CP19 - Eliminar convocatoria favorita exitosamente")
     void eliminarDeFavoritas_valido_retornaMensaje() {
         Long userId = 1L;
         Long convocatoriaId = 10L;
@@ -413,7 +413,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP23 - Eliminar favorita con usuario inexistente")
+    @DisplayName("CP20 - Eliminar favorita con usuario inexistente")
     void eliminarDeFavoritas_usuarioNoExiste_lanzaExcepcion() {
         FavoriteConvocationRequest request = new FavoriteConvocationRequest(99L, 1L);
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
@@ -422,7 +422,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP24 - Eliminar favorita con convocatoria inexistente")
+    @DisplayName("CP21 - Eliminar favorita con convocatoria inexistente")
     void eliminarDeFavoritas_convocatoriaNoExiste_lanzaExcepcion() {
         Long userId = 1L;
         FavoriteConvocationRequest request = new FavoriteConvocationRequest(userId, 100L);
@@ -436,7 +436,7 @@ public class ConvocationServiceUnitTest {
     }
 
     @Test
-    @DisplayName("CP25 - Eliminar favorita cuando no está marcada")
+    @DisplayName("CP22 - Eliminar favorita cuando no está marcada")
     void eliminarDeFavoritas_noExisteFavorita_lanzaExcepcion() {
         Long userId = 1L;
         Long convocatoriaId = 5L;
