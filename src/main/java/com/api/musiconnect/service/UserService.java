@@ -93,4 +93,48 @@ public class UserService {
         return Map.of("message", "Estado de disponibilidad actualizado a " + estado + ".");
     }
 
+    /* NUEVAS FUNCIONALIDADES PARA EL ACRONIMO CRUD */
+
+    // 1. Obtener todos los usuarios
+    public List<User> obtenerTodosLosUsuarios() {
+        return userRepository.findAll();
+    }
+
+    // 2. Obtener usuario por ID
+    public User obtenerUsuarioPorId(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
+    }
+
+    // 3. Obtener usuario por nombre artístico
+    public User obtenerPorNombreArtistico(String nombreArtistico) {
+        return userRepository.findByNombreArtisticoIgnoreCase(nombreArtistico)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ese nombre artístico."));
+    }
+
+    // 4. Obtener usuarios por género musical
+    public List<User> obtenerPorGeneroMusical(String genero) {
+        MusicGenreEnum generoEnum;
+        try {
+            generoEnum = MusicGenreEnum.valueOf(genero.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BusinessRuleException("Género musical inválido.");
+        }
+
+        return userRepository.findAll().stream()
+                .filter(user -> user.getGenerosMusicales().stream()
+                        .anyMatch(g -> g.getNombre().equals(generoEnum)))
+                .toList();
+    }
+
+    // 5. Eliminar usuario
+    @Transactional
+    public Map<String, String> eliminarUsuario(Long id) {
+        User usuario = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
+
+        userRepository.delete(usuario);
+
+        return Map.of("message", "Usuario eliminado exitosamente.");
+    }
 }

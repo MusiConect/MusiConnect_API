@@ -147,5 +147,28 @@ public class ConvocationService {
 
         return Map.of("message", "Convocatoria removida de favoritas.");
     }
+    /* FUNCIONALIDADES PARA CUMPLIR CON EL ACRONIMO CRUD */
 
+    // 1. Obtener convocatoria por ID
+    @Transactional
+    public ConvocationResponse obtenerConvocatoriaPorId(Long id) {
+        Convocation convocatoria = convocationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Convocatoria no encontrada."));
+        return ConvocationMapper.toResponse(convocatoria);
+    }
+
+    // 2. Eliminar convocatoria (requiere validar autoría)
+    @Transactional
+    public Map<String, String> eliminarConvocatoria(Long id, Long usuarioId) {
+        Convocation convocatoria = convocationRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Convocatoria no encontrada."));
+
+        if (!convocatoria.getUsuario().getUserId().equals(usuarioId)) {
+            throw new BusinessRuleException("No tiene permisos para eliminar esta convocatoria.");
+        }
+
+        convocationRepository.delete(convocatoria);
+
+        return Map.of("message", "Convocatoria eliminada exitosamente.");
+    }
 }
