@@ -36,4 +36,36 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+    /* NUEVAS FUNCIONALIDADES PARA EL ACRONIMO CRUD */
+
+    // 1. Obtener todos los usuarios
+    @GetMapping
+    public ResponseEntity<?> obtenerTodos() {
+        return ResponseEntity.ok(userService.obtenerTodosLosUsuarios());
+    }
+
+    // 2. Obtener usuario por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.obtenerUsuarioPorId(id));
+    }
+
+    // 3. Obtener usuario por nombre artístico
+    @GetMapping("/nombre-artistico/{nombre}")
+    public ResponseEntity<?> obtenerPorNombreArtistico(@PathVariable String nombre) {
+        return ResponseEntity.ok(userService.obtenerPorNombreArtistico(nombre));
+    }
+
+    // 4. Obtener usuarios por género musical
+    @GetMapping("/genero/{genero}")
+    public ResponseEntity<?> obtenerPorGenero(@PathVariable String genero) {
+        return ResponseEntity.ok(userService.obtenerPorGeneroMusical(genero));
+    }
+
+    // 5. Eliminar usuario
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> eliminarUsuario(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.eliminarUsuario(id));
+    }
+
 }

@@ -8,6 +8,7 @@ import com.api.musiconnect.service.BandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
@@ -41,4 +42,38 @@ public class BandController {
     ) {
         return ResponseEntity.ok(bandService.updateBand(bandId, request));
     } 
+
+    /* NUEVAS FUNCIONALIDADES PARA EL ACRONIMO CRUD */
+
+    // 1. Obtener todas las bandas
+    @GetMapping
+    public ResponseEntity<List<BandResponse>> listarBandas() {
+        return ResponseEntity.ok(bandService.obtenerTodasLasBandas());
+    }
+
+    // 2. Obtener una banda por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<BandResponse> obtenerBandaPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(bandService.obtenerBandaPorId(id));
+    }
+
+    // 3. Eliminar banda
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> eliminarBanda(
+            @PathVariable Long id,
+            @RequestParam Long adminId) {
+        return ResponseEntity.ok(bandService.eliminarBanda(id, adminId));
+    }
+
+    // 4. Obtener todos los miembros de una banda
+    @GetMapping("/{id}/members")
+    public ResponseEntity<List<String>> listarMiembros(@PathVariable Long id) {
+        return ResponseEntity.ok(bandService.obtenerMiembrosDeBanda(id));
+    }
+
+    // 5. Obtener miembro de banda por ID
+    @GetMapping("/{id}/members/{miembroId}")
+    public ResponseEntity<String> obtenerMiembro(@PathVariable Long id, @PathVariable Long miembroId) {
+        return ResponseEntity.ok(bandService.obtenerMiembroDeBandaPorId(id, miembroId));
+    }
 }

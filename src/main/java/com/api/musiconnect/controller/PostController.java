@@ -41,5 +41,36 @@ public class PostController {
         return ResponseEntity.ok(postService.listarComentarios(postId));
     }
 
+    // 1. Listar todos los posts
+    @GetMapping
+    public ResponseEntity<List<PostResponse>> listarPosts() {
+        return ResponseEntity.ok(postService.listarTodosLosPosts());
+    }
 
+    // 2. Obtener un post por su ID
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostResponse> obtenerPost(@PathVariable Long postId) {
+        return ResponseEntity.ok(postService.obtenerPostPorId(postId));
+    }
+
+    // 3. Eliminar publicación
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<Void> eliminarPost(@PathVariable Long postId, @RequestParam Long usuarioId) {
+        postService.eliminarPost(postId, usuarioId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // 4. Editar comentario
+    @PutMapping("/comments/{comentarioId}")
+    public ResponseEntity<ComentarioResponse> editarComentario(@PathVariable Long comentarioId,
+            @Valid @RequestBody ComentarioRequest request) {
+        return ResponseEntity.ok(postService.editarComentario(comentarioId, request));
+    }
+
+    // 5. Eliminar comentario
+    @DeleteMapping("/comments/{comentarioId}")
+    public ResponseEntity<Void> eliminarComentario(@PathVariable Long comentarioId, @RequestParam Long usuarioId) {
+        postService.eliminarComentario(comentarioId, usuarioId);
+        return ResponseEntity.noContent().build();
+    }
 }

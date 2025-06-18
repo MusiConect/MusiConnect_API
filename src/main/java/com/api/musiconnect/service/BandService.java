@@ -124,4 +124,56 @@ public class BandService {
 
         return Map.of("message", "Información de la banda actualizada correctamente.");
     }
+
+    /* NUEVAS FUNCIONALIDADES PARA EL ACRONIMO CRUD */
+
+    // 1. Obtener todas las bandas
+    public List<BandResponse> obtenerTodasLasBandas() {
+        return bandRepository.findAll().stream()
+                .map(BandMapper::toResponse)
+                .toList();
+    }
+
+    // 2. Obtener banda por ID
+    public BandResponse obtenerBandaPorId(Long id) {
+        Band banda = bandRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Banda no encontrada."));
+        return BandMapper.toResponse(banda);
+    }
+
+    // 3. Eliminar banda
+    @Transactional
+    public Map<String, String> eliminarBanda(Long id, Long adminId) {
+        Band banda = bandRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Banda no encontrada."));
+
+        if (!banda.getAdministrador().getUserId().equals(adminId)) {
+            throw new BusinessRuleException("No tiene permisos para eliminar esta banda.");
+        }
+
+        bandRepository.delete(banda);
+        return Map.of("message", "Banda eliminada exitosamente.");
+    }
+
+    // 4. Obtener todos los miembros de una banda
+    public List<String> obtenerMiembrosDeBanda(Long id) {
+        Band banda = bandRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Banda no encontrada."));
+
+        return banda.getMiembros().stream()
+                .map(User::getNombreArtistico)
+                .toList();
+    }
+
+    // 5. Obtener miembro específico por ID dentro de una banda
+    public String obtenerMiembroDeBandaPorId(Long bandId, Long miembroId) {
+        Band banda = bandRepository.findById(bandId)
+                .orElseThrow(() -> new ResourceNotFoundException("Banda no encontrada."));
+
+        return banda.getMiembros().stream()
+                .filter(u -> u.getUserId().equals(miembroId))
+                .findFirst()
+                .map(User::getNombreArtistico)
+                .orElseThrow(() -> new ResourceNotFoundException("Miembro no pertenece a la banda."));
+    }
 }

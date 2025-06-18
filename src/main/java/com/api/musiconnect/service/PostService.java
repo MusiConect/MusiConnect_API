@@ -109,4 +109,71 @@ public class PostService {
                 .toList();
     }
 
+
+        /* NUEVAS FUNCIONALIDADES PARA EL ACRONIMO CRUD */
+
+        // 1. Listar todos los posts
+        public List<PostResponse> listarTodosLosPosts() {
+        return postRepository.findAll().stream()
+                .map(post -> {
+                        List<ComentarioResponse> comentarios = comentarioRepository.findByPost(post).stream()
+                                .map(ComentarioMapper::toResponse)
+                                .toList();
+                        return PostMapper.toResponse(post, comentarios);
+                })
+                .toList();
+        }
+
+        // 2. Obtener un post por ID
+        public PostResponse obtenerPostPorId(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Publicación no encontrada."));
+
+        List<ComentarioResponse> comentarios = comentarioRepository.findByPost(post).stream()
+                .map(ComentarioMapper::toResponse)
+                .toList();
+
+        return PostMapper.toResponse(post, comentarios);
+        }
+
+        // 3. Eliminar publicación
+        @Transactional
+        public void eliminarPost(Long postId, Long usuarioId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Publicación no encontrada."));
+
+        if (!post.getUsuario().getUserId().equals(usuarioId)) {
+                throw new BusinessRuleException("No tiene permisos para eliminar esta publicación.");
+        }
+
+        comentarioRepository.deleteAll(post.getComentarios()); // elimina comentarios asociados
+        postRepository.delete(post);
+        }
+
+        // 4. Editar comentario
+        @Transactional
+        public ComentarioResponse editarComentario(Long comentarioId, ComentarioRequest request) {
+        Comentario comentario = comentarioRepository.findById(comentarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comentario no encontrado."));
+
+        if (!comentario.getUsuario().getUserId().equals(request.usuarioId())) {
+                throw new BusinessRuleException("No tiene permisos para editar este comentario.");
+        }
+
+        comentario.setContenido(request.contenido());
+        return ComentarioMapper.toResponse(comentarioRepository.save(comentario));
+        }
+
+        // 5. Eliminar comentario
+        @Transactional
+        public void eliminarComentario(Long comentarioId, Long usuarioId) {
+        Comentario comentario = comentarioRepository.findById(comentarioId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comentario no encontrado."));
+
+        if (!comentario.getUsuario().getUserId().equals(usuarioId)) {
+                throw new BusinessRuleException("No tiene permisos para eliminar este comentario.");
+        }
+
+        comentarioRepository.delete(comentario);
+        }
 }
