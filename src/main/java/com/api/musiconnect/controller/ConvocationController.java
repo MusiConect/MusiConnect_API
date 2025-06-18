@@ -59,4 +59,22 @@ public class ConvocationController {
         Map<String, String> response = convocationService.eliminarDeFavoritas(request);
         return ResponseEntity.ok(response);
     }
+
+    /* FUNCIONALIDADES NUEVAS PARA CUMPLIR EL ACRONIMO CRUD */
+
+    // 1. Obtener convocatoria por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<ConvocationResponse> obtenerConvocatoriaPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(convocationService.obtenerConvocatoriaPorId(id));
+    }
+
+    // 2. Eliminar convocatoria (requiere usuarioId como parámetro)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> eliminarConvocatoria(
+            @PathVariable Long id,
+            @RequestParam Long usuarioId
+    ) {
+        Map<String, String> response = convocationService.eliminarConvocatoria(id, usuarioId);
+        return ResponseEntity.ok(response);
+    }
 }
