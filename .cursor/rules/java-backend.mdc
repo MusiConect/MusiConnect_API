@@ -1,0 +1,40 @@
+---
+description: 
+globs: **/*.java
+alwaysApply: false
+---
+---
+description: 
+globs: **/*.java
+alwaysApply: false
+---
+---
+description: Convenciones de backend Java con Spring Boot y JPA.
+globs: ["**/*.java"]
+alwaysApply: false
+---
+
+### Estructura de paquetes
+- Raíz: `com.api` o dominio equivalente.
+- Sub-paquetes estrictos: `controller`, `service`, `repository`, `dto.request`, `dto.response`, `mapper`, `exception`, `security`, `model.entity`, `model.enums`, `config`.
+
+### Estilo de código
+- Respirar reglas globales (4 espacios, K&R, 120 caracteres).
+- Usar **Lombok** con `@RequiredArgsConstructor` o `@Builder` según convenga.
+
+### Inyección y transacciones
+- Inyección **por constructor**; se permite `@Autowired` en campos solo en casos excepcionales.
+- Los servicios (`@Service`) deben ser **@Transactional** por defecto.
+
+### DTO ↔ Entidad
+- Usar **MapStruct** (`@Mapper`) con mapeos explícitos.
+- DTOs dentro de `dto.request` y `dto.response`.
+
+### Pruebas
+- **JUnit 5 + Mockito**. Cobertura 100 %.
+- Tests unitarios en `src/test/java/**`.
+
+### Versionado & CI
+
+
+- Pipeline verifica cobertura, formato (`spotless` o `google-java-format`) y Conventional Commits.
