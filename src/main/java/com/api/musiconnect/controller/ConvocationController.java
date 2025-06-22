@@ -77,4 +77,10 @@ public class ConvocationController {
         Map<String, String> response = convocationService.eliminarConvocatoria(id, usuarioId);
         return ResponseEntity.ok(response);
     }
+
+    // Endpoint para listar TODAS, incluidas expiradas
+    @GetMapping("/all")
+    public ResponseEntity<List<ConvocationResponse>> listarTodas() {
+        return ResponseEntity.ok(convocationService.listarTodas());
+    }
 }

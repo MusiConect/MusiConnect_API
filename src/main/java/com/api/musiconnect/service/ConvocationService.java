@@ -72,7 +72,7 @@ public class ConvocationService {
     public List<ConvocationResponse> listarConvocatoriasActivas() {
         List<Convocation> convocatorias = convocationRepository.findAll()
                 .stream()
-                .filter(Convocation::getActiva)
+                .filter(c -> c.getActiva() && !c.getFechaLimite().isBefore(LocalDate.now()))
                 .toList();
 
         if (convocatorias.isEmpty()) {
@@ -93,7 +93,7 @@ public class ConvocationService {
 
         List<Convocation> convocatoriasActivas = favoritos.stream()
                 .map(ConvocationFavorite::getConvocatoria)
-                .filter(Convocation::getActiva)
+                .filter(c -> c.getActiva() && !c.getFechaLimite().isBefore(LocalDate.now()))
                 .toList();
 
         if (convocatoriasActivas.isEmpty()) {
@@ -170,5 +170,16 @@ public class ConvocationService {
         convocationRepository.delete(convocatoria);
 
         return Map.of("message", "Convocatoria eliminada exitosamente.");
+    }
+
+    @Transactional
+    public List<ConvocationResponse> listarTodas() {
+        List<Convocation> convocatorias = convocationRepository.findAll();
+
+        if (convocatorias.isEmpty()) {
+            throw new BusinessRuleException("Actualmente no hay convocatorias disponibles.");
+        }
+
+        return convocatorias.stream().map(ConvocationMapper::toResponse).toList();
     }
 }
