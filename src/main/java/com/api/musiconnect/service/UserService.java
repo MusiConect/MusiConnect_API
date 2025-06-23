@@ -9,6 +9,8 @@ import com.api.musiconnect.model.entity.User;
 import com.api.musiconnect.model.enums.MusicGenreEnum;
 import com.api.musiconnect.repository.MusicGenreRepository;
 import com.api.musiconnect.repository.UserRepository;
+import com.api.musiconnect.dto.response.UserResponse;
+import com.api.musiconnect.mapper.UserMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -96,24 +98,29 @@ public class UserService {
     /* NUEVAS FUNCIONALIDADES PARA EL ACRONIMO CRUD */
 
     // 1. Obtener todos los usuarios
-    public List<User> obtenerTodosLosUsuarios() {
-        return userRepository.findAll();
+    public List<UserResponse> obtenerTodosLosUsuarios() {
+        return userRepository.findAll()
+                .stream()
+                .map(UserMapper::toResponse)
+                .toList();
     }
 
     // 2. Obtener usuario por ID
-    public User obtenerUsuarioPorId(Long id) {
-        return userRepository.findById(id)
+    public UserResponse obtenerUsuarioPorId(Long id) {
+        User usuario = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado."));
+        return UserMapper.toResponse(usuario);
     }
 
     // 3. Obtener usuario por nombre artístico
-    public User obtenerPorNombreArtistico(String nombreArtistico) {
-        return userRepository.findByNombreArtisticoIgnoreCase(nombreArtistico)
+    public UserResponse obtenerPorNombreArtistico(String nombreArtistico) {
+        User usuario = userRepository.findByNombreArtisticoIgnoreCase(nombreArtistico)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con ese nombre artístico."));
+        return UserMapper.toResponse(usuario);
     }
 
     // 4. Obtener usuarios por género musical
-    public List<User> obtenerPorGeneroMusical(String genero) {
+    public List<UserResponse> obtenerPorGeneroMusical(String genero) {
         MusicGenreEnum generoEnum;
         try {
             generoEnum = MusicGenreEnum.valueOf(genero.toUpperCase());
@@ -124,6 +131,7 @@ public class UserService {
         return userRepository.findAll().stream()
                 .filter(user -> user.getGenerosMusicales().stream()
                         .anyMatch(g -> g.getNombre().equals(generoEnum)))
+                .map(UserMapper::toResponse)
                 .toList();
     }
 
