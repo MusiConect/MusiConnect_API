@@ -33,4 +33,7 @@ public class Convocation {
 
     @Column(nullable = false)
     private Boolean activa;
+
+    @OneToMany(mappedBy = "convocatoria", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private java.util.List<ConvocationFavorite> favorites;
 }

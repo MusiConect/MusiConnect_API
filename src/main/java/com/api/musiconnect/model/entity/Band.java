@@ -48,4 +48,6 @@ public class Band {
     )
     private List<User> miembros;
 
+    @OneToMany(mappedBy = "followedBand", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private java.util.List<Follow> followers;
 }

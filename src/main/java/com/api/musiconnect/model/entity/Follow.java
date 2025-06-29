@@ -31,7 +31,7 @@ public class Follow {
     private User followedUser; // usuario seguido (opcional)
 
     @ManyToOne
-    @JoinColumn(name = "followed_band_id")
+    @JoinColumn(name = "band_id")
     private Band followedBand; // banda seguida (opcional)
 
     private LocalDateTime fechaSeguimiento;
