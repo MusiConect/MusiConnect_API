@@ -11,6 +11,7 @@ import com.api.musiconnect.model.entity.Band;
 import com.api.musiconnect.model.entity.MusicGenre;
 import com.api.musiconnect.model.entity.User;
 import com.api.musiconnect.model.enums.MusicGenreEnum;
+import com.api.musiconnect.model.enums.RoleEnum;
 import com.api.musiconnect.repository.BandRepository;
 import com.api.musiconnect.repository.MusicGenreRepository;
 import com.api.musiconnect.repository.UserRepository;
@@ -39,6 +40,11 @@ public class BandService {
 
         User admin = userRepository.findById(request.adminId())
                 .orElseThrow(() -> new BusinessRuleException("Usuario administrador no encontrado."));
+
+        // Validar que el administrador sea PRODUCTOR
+        if (!RoleEnum.PRODUCTOR.equals(admin.getRole().getName())) {
+            throw new BusinessRuleException("Solo los usuarios con rol PRODUCTOR pueden crear una banda.");
+        }
 
         // Validar disponibilidad del usuario
         if (!Boolean.TRUE.equals(admin.getDisponibilidad())) {
@@ -73,6 +79,11 @@ public class BandService {
 
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new ResourceNotFoundException("El usuario no existe."));
+
+        // No permitir añadir otro productor a la banda
+        if (RoleEnum.PRODUCTOR.equals(user.getRole().getName())) {
+            throw new BusinessRuleException("Sólo puede haber un PRODUCTOR por banda (el creador).");
+        }
 
         // Validar disponibilidad del usuario que se desea agregar
         if (!Boolean.TRUE.equals(user.getDisponibilidad())) {

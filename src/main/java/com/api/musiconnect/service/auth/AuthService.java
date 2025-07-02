@@ -65,7 +65,7 @@ public class AuthService {
 
         userRepository.save(user);
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), role.getName().name());
         return new LoginResponse("Registro exitoso", user.getUserId(), user.getNombreArtistico(), token);
     }
 
@@ -78,7 +78,7 @@ public class AuthService {
             throw new BusinessRuleException("Credenciales inválidas (La contraseña es incorrecta).");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().getName().name());
         return new LoginResponse("Login exitoso", user.getUserId(), user.getNombreArtistico(), token);
     }
 }

@@ -17,13 +17,24 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public String generateToken(String email) {
+    /**
+     * Genera un JWT con el correo como subject y un claim adicional "role".
+     */
+    public String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    /**
+     * Método legacy (tests): genera token sin claim de rol.
+     */
+    public String generateToken(String email) {
+        return generateToken(email, "");
     }
 
     public String getEmailFromToken(String token) {
